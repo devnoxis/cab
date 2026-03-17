@@ -167,6 +167,12 @@ RSpec.describe App do
       expect(last_response.body).to include('content: attr(data-tooltip)')
     end
 
+    it 'tooltip appears below language buttons using top positioning' do
+      get '/about'
+      expect(last_response.body).to include('top: calc(100% + 6px)')
+      expect(last_response.body).not_to include('bottom: calc(100% + 6px)')
+    end
+
     it 'defaults to English when no lang param given' do
       get '/about'
       expect(last_response.body).to include('lang="en"')
