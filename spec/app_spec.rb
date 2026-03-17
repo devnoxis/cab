@@ -16,14 +16,14 @@ RSpec.describe App do
       expect(last_response.status).to eq(200)
     end
 
-    it 'returns welcome text' do
+    it 'returns welcome JSON body' do
       get '/'
-      expect(last_response.body).to eq('Welcome')
+      expect(JSON.parse(last_response.body)).to eq('message' => 'Welcome')
     end
 
-    it 'returns plain text content type' do
+    it 'returns JSON content type' do
       get '/'
-      expect(last_response.content_type).to eq('text/plain')
+      expect(last_response.content_type).to eq('application/json')
     end
   end
 
@@ -31,6 +31,16 @@ RSpec.describe App do
     it 'returns 404' do
       get '/other'
       expect(last_response.status).to eq(404)
+    end
+
+    it 'returns JSON content type' do
+      get '/other'
+      expect(last_response.content_type).to eq('application/json')
+    end
+
+    it 'returns JSON error body' do
+      get '/other'
+      expect(JSON.parse(last_response.body)).to eq('error' => 'Not Found')
     end
   end
 end
