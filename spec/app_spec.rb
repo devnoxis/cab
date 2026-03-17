@@ -134,6 +134,150 @@ RSpec.describe App do
       get '/about'
       expect(last_response.body).to include('prefers-color-scheme')
     end
+
+    it 'includes language switcher with all four languages' do
+      get '/about'
+      expect(last_response.body).to include('?lang=en')
+      expect(last_response.body).to include('?lang=pl')
+      expect(last_response.body).to include('?lang=de')
+      expect(last_response.body).to include('?lang=fr')
+    end
+
+    it 'defaults to English when no lang param given' do
+      get '/about'
+      expect(last_response.body).to include('lang="en"')
+      expect(last_response.body).to include('Accelerated Development')
+    end
+
+    it 'marks the active language with lang-active class' do
+      get '/about'
+      expect(last_response.body).to match(/lang=en[^>]*lang-active|lang-active[^>]*lang=en/)
+    end
+  end
+
+  describe 'GET /about?lang=pl' do
+    it 'returns 200' do
+      get '/about?lang=pl'
+      expect(last_response.status).to eq(200)
+    end
+
+    it 'sets html lang attribute to pl' do
+      get '/about?lang=pl'
+      expect(last_response.body).to include('lang="pl"')
+    end
+
+    it 'renders Polish hero text' do
+      get '/about?lang=pl'
+      expect(last_response.body).to include('jest blisko')
+    end
+
+    it 'renders Polish feature card titles' do
+      get '/about?lang=pl'
+      expect(last_response.body).to include('Przyspieszone tworzenie')
+      expect(last_response.body).to include('Inteligentny przegląd kodu')
+    end
+
+    it 'renders Polish nav labels' do
+      get '/about?lang=pl'
+      expect(last_response.body).to include('O nas')
+      expect(last_response.body).to include('Funkcje')
+    end
+
+    it 'renders Polish contact title' do
+      get '/about?lang=pl'
+      expect(last_response.body).to include('Skontaktuj się')
+    end
+
+    it 'marks PL as active language' do
+      get '/about?lang=pl'
+      expect(last_response.body).to match(/lang=pl[^>]*lang-active|lang-active[^>]*lang=pl/)
+    end
+  end
+
+  describe 'GET /about?lang=de' do
+    it 'returns 200' do
+      get '/about?lang=de'
+      expect(last_response.status).to eq(200)
+    end
+
+    it 'sets html lang attribute to de' do
+      get '/about?lang=de'
+      expect(last_response.body).to include('lang="de"')
+    end
+
+    it 'renders German hero text' do
+      get '/about?lang=de'
+      expect(last_response.body).to include('ist nah')
+    end
+
+    it 'renders German feature card titles' do
+      get '/about?lang=de'
+      expect(last_response.body).to include('Beschleunigte Entwicklung')
+      expect(last_response.body).to include('Intelligentes Code-Review')
+    end
+
+    it 'renders German nav labels' do
+      get '/about?lang=de'
+      expect(last_response.body).to include('Über uns')
+      expect(last_response.body).to include('Funktionen')
+    end
+
+    it 'renders German contact title' do
+      get '/about?lang=de'
+      expect(last_response.body).to include('Kontakt aufnehmen')
+    end
+
+    it 'marks DE as active language' do
+      get '/about?lang=de'
+      expect(last_response.body).to match(/lang=de[^>]*lang-active|lang-active[^>]*lang=de/)
+    end
+  end
+
+  describe 'GET /about?lang=fr' do
+    it 'returns 200' do
+      get '/about?lang=fr'
+      expect(last_response.status).to eq(200)
+    end
+
+    it 'sets html lang attribute to fr' do
+      get '/about?lang=fr'
+      expect(last_response.body).to include('lang="fr"')
+    end
+
+    it 'renders French hero text' do
+      get '/about?lang=fr'
+      expect(last_response.body).to include('est proche')
+    end
+
+    it 'renders French feature card titles' do
+      get '/about?lang=fr'
+      expect(last_response.body).to include('Développement accéléré')
+      expect(last_response.body).to include('Revue de code intelligente')
+    end
+
+    it 'renders French nav labels' do
+      get '/about?lang=fr'
+      expect(last_response.body).to include('À propos')
+      expect(last_response.body).to include('Fonctionnalités')
+    end
+
+    it 'renders French contact title' do
+      get '/about?lang=fr'
+      expect(last_response.body).to include('Prendre contact')
+    end
+
+    it 'marks FR as active language' do
+      get '/about?lang=fr'
+      expect(last_response.body).to match(/lang=fr[^>]*lang-active|lang-active[^>]*lang=fr/)
+    end
+  end
+
+  describe 'GET /about with unknown lang param' do
+    it 'falls back to English' do
+      get '/about?lang=xx'
+      expect(last_response.body).to include('lang="en"')
+      expect(last_response.body).to include('Accelerated Development')
+    end
   end
 
   describe 'GET /gen' do
