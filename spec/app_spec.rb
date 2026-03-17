@@ -64,6 +64,38 @@ RSpec.describe App do
     end
   end
 
+  describe 'GET /about' do
+    it 'returns 200' do
+      get '/about'
+      expect(last_response.status).to eq(200)
+    end
+
+    it 'returns HTML content type' do
+      get '/about'
+      expect(last_response.content_type).to eq('text/html')
+    end
+
+    it 'returns HTML body with hero title' do
+      get '/about'
+      expect(last_response.body).to include('AutoBot AI workflow')
+      expect(last_response.body).to include('is near')
+    end
+
+    it 'returns HTML body with company contact info' do
+      get '/about'
+      expect(last_response.body).to include('123 Innovation Street')
+      expect(last_response.body).to include('hello@autobot.dev')
+      expect(last_response.body).to include('support@autobot.dev')
+      expect(last_response.body).to include('+1 (415) 555-0123')
+    end
+
+    it 'returns HTML body with feature cards' do
+      get '/about'
+      expect(last_response.body).to include('Accelerated Development')
+      expect(last_response.body).to include('Intelligent Code Review')
+    end
+  end
+
   describe 'GET /other' do
     it 'returns 404' do
       get '/other'
