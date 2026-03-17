@@ -63,6 +63,18 @@ RSpec.describe App do
       expect(body['date']).to eq(Time.now.strftime('%Y-%m-%d'))
       expect(body['ruby_version']).to eq(RUBY_VERSION)
     end
+
+    it 'returns user_agent from the request' do
+      get '/info', {}, 'HTTP_USER_AGENT' => 'TestBrowser/1.0'
+      body = JSON.parse(last_response.body)
+      expect(body['user_agent']).to eq('TestBrowser/1.0')
+    end
+
+    it 'returns ip from the request' do
+      get '/info', {}, 'REMOTE_ADDR' => '1.2.3.4'
+      body = JSON.parse(last_response.body)
+      expect(body['ip']).to eq('1.2.3.4')
+    end
   end
 
   describe 'GET /about' do

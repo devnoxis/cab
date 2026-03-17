@@ -14,7 +14,7 @@ class App
     elsif request.path == '/up'
       [200, { 'content-type' => 'application/json' }, [{ message: "I'm wokring" }.to_json]]
     elsif request.path == '/info'
-      [200, { 'content-type' => 'application/json' }, [{ app: 'Test', date: Time.now.strftime('%Y-%m-%d'), ruby_version: RUBY_VERSION }.to_json]]
+      [200, { 'content-type' => 'application/json' }, [{ app: 'Test', date: Time.now.strftime('%Y-%m-%d'), ruby_version: RUBY_VERSION, user_agent: request.user_agent, ip: request.ip }.to_json]]
     elsif request.path == '/about'
       [200, { 'content-type' => 'text/html' }, [about_html]]
     elsif request.path == '/gen'
