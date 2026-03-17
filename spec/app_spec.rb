@@ -44,6 +44,26 @@ RSpec.describe App do
     end
   end
 
+  describe 'GET /info' do
+    it 'returns 200' do
+      get '/info'
+      expect(last_response.status).to eq(200)
+    end
+
+    it 'returns JSON content type' do
+      get '/info'
+      expect(last_response.content_type).to eq('application/json')
+    end
+
+    it 'returns app name, current date, and ruby version' do
+      get '/info'
+      body = JSON.parse(last_response.body)
+      expect(body['app']).to eq('Test')
+      expect(body['date']).to eq(Time.now.strftime('%Y-%m-%d'))
+      expect(body['ruby_version']).to eq(RUBY_VERSION)
+    end
+  end
+
   describe 'GET /other' do
     it 'returns 404' do
       get '/other'
