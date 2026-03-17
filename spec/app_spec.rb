@@ -96,6 +96,52 @@ RSpec.describe App do
     end
   end
 
+  describe 'GET /gen' do
+    it 'returns 200' do
+      get '/gen'
+      expect(last_response.status).to eq(200)
+    end
+
+    it 'returns JSON content type' do
+      get '/gen'
+      expect(last_response.content_type).to eq('application/json')
+    end
+
+    it 'returns a token' do
+      get '/gen'
+      body = JSON.parse(last_response.body)
+      expect(body['token']).not_to be_nil
+      expect(body['token']).not_to be_empty
+    end
+
+    it 'generates a different token each time' do
+      get '/gen'
+      token1 = JSON.parse(last_response.body)['token']
+      get '/gen'
+      token2 = JSON.parse(last_response.body)['token']
+      expect(token1).not_to eq(token2)
+    end
+
+    it 'prepends prefix when given' do
+      get '/gen?prefix=usr'
+      token = JSON.parse(last_response.body)['token']
+      expect(token).to start_with('usr_')
+    end
+
+    it 'appends postfix when given' do
+      get '/gen?postfix=dev'
+      token = JSON.parse(last_response.body)['token']
+      expect(token).to end_with('_dev')
+    end
+
+    it 'supports prefix and postfix together' do
+      get '/gen?prefix=usr&postfix=dev'
+      token = JSON.parse(last_response.body)['token']
+      expect(token).to start_with('usr_')
+      expect(token).to end_with('_dev')
+    end
+  end
+
   describe 'GET /other' do
     it 'returns 404' do
       get '/other'
