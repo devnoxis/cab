@@ -56,6 +56,19 @@ class App
             --text: #e8e8f0;
             --muted: #8888aa;
             --radius: 16px;
+            --nav-bg: rgba(10, 10, 15, 0.8);
+          }
+
+          [data-theme="light"] {
+            --bg: #f5f5fa;
+            --surface: #ffffff;
+            --surface2: #ebebf5;
+            --border: rgba(96, 64, 238, 0.2);
+            --accent: #6040ee;
+            --accent2: #0099cc;
+            --text: #1a1a2e;
+            --muted: #555577;
+            --nav-bg: rgba(245, 245, 250, 0.85);
           }
 
           html { scroll-behavior: smooth; }
@@ -78,7 +91,7 @@ class App
             justify-content: space-between;
             padding: 1rem 2rem;
             backdrop-filter: blur(12px);
-            background: rgba(10, 10, 15, 0.8);
+            background: var(--nav-bg);
             border-bottom: 1px solid var(--border);
           }
           .nav-logo {
@@ -318,6 +331,20 @@ class App
             font-size: 0.85rem;
           }
 
+          /* ── Theme toggle ── */
+          .theme-toggle {
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            padding: 0.35rem 0.75rem;
+            cursor: pointer;
+            color: var(--muted);
+            font-size: 1rem;
+            line-height: 1;
+            transition: border-color 0.2s, color 0.2s;
+          }
+          .theme-toggle:hover { border-color: var(--accent); color: var(--text); }
+
           @media (max-width: 768px) {
             .about-text, .contact-grid { grid-template-columns: 1fr; }
             .nav-links { display: none; }
@@ -333,6 +360,7 @@ class App
             <li><a href="#features">Features</a></li>
             <li><a href="#contact">Contact</a></li>
           </ul>
+          <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">🌙</button>
         </nav>
 
         <!-- ── Hero ── -->
@@ -489,6 +517,33 @@ class App
         <footer>
           <p>© #{Time.now.year} Autobot. All rights reserved.</p>
         </footer>
+
+        <script>
+          (function () {
+            var STORAGE_KEY = 'autobot-theme';
+            var btn = document.getElementById('theme-toggle');
+
+            function applyTheme(theme) {
+              document.documentElement.setAttribute('data-theme', theme);
+              btn.textContent = theme === 'light' ? '🌙' : '☀️';
+              btn.setAttribute('aria-label', theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme');
+            }
+
+            function detectSystemTheme() {
+              return window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+            }
+
+            var stored = localStorage.getItem(STORAGE_KEY);
+            applyTheme(stored || detectSystemTheme());
+
+            btn.addEventListener('click', function () {
+              var current = document.documentElement.getAttribute('data-theme') || 'dark';
+              var next = current === 'dark' ? 'light' : 'dark';
+              localStorage.setItem(STORAGE_KEY, next);
+              applyTheme(next);
+            });
+          })();
+        </script>
 
       </body>
       </html>

@@ -107,6 +107,33 @@ RSpec.describe App do
       expect(last_response.body).to include('Accelerated Development')
       expect(last_response.body).to include('Intelligent Code Review')
     end
+
+    it 'includes light theme CSS variables' do
+      get '/about'
+      expect(last_response.body).to include('[data-theme="light"]')
+    end
+
+    it 'includes dark theme CSS variables in :root' do
+      get '/about'
+      expect(last_response.body).to match(/:root\s*\{[^}]*--bg:\s*#0a0a0f/)
+    end
+
+    it 'includes theme toggle button' do
+      get '/about'
+      expect(last_response.body).to include('id="theme-toggle"')
+      expect(last_response.body).to include('aria-label="Toggle theme"')
+    end
+
+    it 'includes theme detection script using localStorage' do
+      get '/about'
+      expect(last_response.body).to include('autobot-theme')
+      expect(last_response.body).to include('localStorage')
+    end
+
+    it 'includes system theme detection via prefers-color-scheme' do
+      get '/about'
+      expect(last_response.body).to include('prefers-color-scheme')
+    end
   end
 
   describe 'GET /gen' do
