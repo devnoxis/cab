@@ -543,9 +543,9 @@ class App
           .lang-link::after {
             content: attr(data-tooltip);
             position: absolute;
-            bottom: calc(100% + 6px);
+            top: calc(100% + 6px);
             left: 50%;
-            transform: translateX(-50%) translateY(4px);
+            transform: translateX(-50%) translateY(-4px);
             background: var(--surface);
             color: var(--text);
             font-size: 0.7rem;
