@@ -2,6 +2,7 @@
 
 require 'rack'
 require 'json'
+require 'securerandom'
 require 'base64'
 
 class App
@@ -16,6 +17,13 @@ class App
       [200, { 'content-type' => 'application/json' }, [{ app: 'Test', date: Time.now.strftime('%Y-%m-%d'), ruby_version: RUBY_VERSION }.to_json]]
     elsif request.path == '/about'
       [200, { 'content-type' => 'text/html' }, [about_html]]
+    elsif request.path == '/gen'
+      token = SecureRandom.hex(16)
+      prefix = request.params['prefix']
+      postfix = request.params['postfix']
+      token = "#{prefix}_#{token}" if prefix
+      token = "#{token}_#{postfix}" if postfix
+      [200, { 'content-type' => 'application/json' }, [{ token: token }.to_json]]
     elsif request.path == '/b64' && request.post?
       body = request.params['body'].to_s
       encoded = Base64.strict_encode64(body)
