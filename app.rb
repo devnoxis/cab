@@ -522,12 +522,47 @@ class App
             font-size: 0.75rem;
             font-weight: 700;
             letter-spacing: 0.05em;
-            padding: 0.2rem 0.45rem;
+            padding: 0.35rem 0.6rem;
             border-radius: 6px;
-            transition: color 0.2s;
+            border: 1px solid var(--border);
+            background: transparent;
+            position: relative;
+            transition: color 0.2s, border-color 0.2s, background 0.2s, transform 0.15s;
           }
-          .lang-link:hover { color: var(--text); }
-          .lang-active { color: var(--accent) !important; }
+          .lang-link:hover {
+            color: var(--text);
+            border-color: var(--accent);
+            background: rgba(120, 80, 255, 0.12);
+            transform: translateY(-1px);
+          }
+          .lang-active {
+            color: var(--accent) !important;
+            border-color: var(--accent) !important;
+            background: rgba(120, 80, 255, 0.15) !important;
+          }
+          .lang-link::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: calc(100% + 6px);
+            left: 50%;
+            transform: translateX(-50%) translateY(4px);
+            background: var(--surface);
+            color: var(--text);
+            font-size: 0.7rem;
+            font-weight: 500;
+            letter-spacing: 0.03em;
+            white-space: nowrap;
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s, transform 0.15s;
+          }
+          .lang-link:hover::after {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+          }
 
           @media (max-width: 768px) {
             .about-text, .contact-grid { grid-template-columns: 1fr; }
@@ -545,10 +580,10 @@ class App
             <li><a href="#contact">#{t[:nav_contact]}</a></li>
           </ul>
           <div class="lang-switcher">
-            <a href="?lang=en" class="lang-link #{'lang-active' if lang == 'en'}">EN</a>
-            <a href="?lang=pl" class="lang-link #{'lang-active' if lang == 'pl'}">PL</a>
-            <a href="?lang=de" class="lang-link #{'lang-active' if lang == 'de'}">DE</a>
-            <a href="?lang=fr" class="lang-link #{'lang-active' if lang == 'fr'}">FR</a>
+            <a href="?lang=en" class="lang-link #{'lang-active' if lang == 'en'}" data-tooltip="English">EN</a>
+            <a href="?lang=pl" class="lang-link #{'lang-active' if lang == 'pl'}" data-tooltip="Polski">PL</a>
+            <a href="?lang=de" class="lang-link #{'lang-active' if lang == 'de'}" data-tooltip="Deutsch">DE</a>
+            <a href="?lang=fr" class="lang-link #{'lang-active' if lang == 'fr'}" data-tooltip="Français">FR</a>
           </div>
           <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">🌙</button>
         </nav>

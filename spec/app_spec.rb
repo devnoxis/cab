@@ -143,6 +143,30 @@ RSpec.describe App do
       expect(last_response.body).to include('?lang=fr')
     end
 
+    it 'renders lang buttons with visible border styling' do
+      get '/about'
+      expect(last_response.body).to include('border: 1px solid var(--border)')
+      expect(last_response.body).to match(/\.lang-link\s*\{[^}]*border:/)
+    end
+
+    it 'renders lang buttons with hover background effect' do
+      get '/about'
+      expect(last_response.body).to include('rgba(120, 80, 255, 0.12)')
+    end
+
+    it 'renders lang buttons with CSS tooltip via data-tooltip attribute' do
+      get '/about'
+      expect(last_response.body).to include('data-tooltip="English"')
+      expect(last_response.body).to include('data-tooltip="Polski"')
+      expect(last_response.body).to include('data-tooltip="Deutsch"')
+      expect(last_response.body).to include('data-tooltip="Français"')
+    end
+
+    it 'includes tooltip CSS using attr(data-tooltip)' do
+      get '/about'
+      expect(last_response.body).to include('content: attr(data-tooltip)')
+    end
+
     it 'defaults to English when no lang param given' do
       get '/about'
       expect(last_response.body).to include('lang="en"')
