@@ -2,6 +2,7 @@
 
 require 'rack'
 require 'json'
+require 'base64'
 
 class App
   def call(env)
@@ -15,6 +16,10 @@ class App
       [200, { 'content-type' => 'application/json' }, [{ app: 'Test', date: Time.now.strftime('%Y-%m-%d'), ruby_version: RUBY_VERSION }.to_json]]
     elsif request.path == '/about'
       [200, { 'content-type' => 'text/html' }, [about_html]]
+    elsif request.path == '/b64' && request.post?
+      body = request.params['body'].to_s
+      encoded = Base64.strict_encode64(body)
+      [200, { 'content-type' => 'application/json' }, [{ result: encoded }.to_json]]
     else
       [404, { 'content-type' => 'application/json' }, [{ error: 'Not Found' }.to_json]]
     end
