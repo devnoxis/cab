@@ -398,6 +398,52 @@ RSpec.describe App do
     end
   end
 
+  describe 'GET /api-docs' do
+    it 'returns 200' do
+      get '/api-docs'
+      expect(last_response.status).to eq(200)
+    end
+
+    it 'returns HTML content type' do
+      get '/api-docs'
+      expect(last_response.content_type).to eq('text/html')
+    end
+
+    it 'includes page title' do
+      get '/api-docs'
+      expect(last_response.body).to include('API Documentation')
+    end
+
+    it 'lists all endpoint paths' do
+      get '/api-docs'
+      %w[/ /up /info /gen /b64 /about /api-docs].each do |path|
+        expect(last_response.body).to include(path)
+      end
+    end
+
+    it 'includes endpoint JSON data in the page' do
+      get '/api-docs'
+      expect(last_response.body).to include('var endpoints =')
+    end
+
+    it 'includes HTTP method labels' do
+      get '/api-docs'
+      expect(last_response.body).to include('"GET"')
+      expect(last_response.body).to include('"POST"')
+    end
+
+    it 'includes parameter details for /gen' do
+      get '/api-docs'
+      expect(last_response.body).to include('prefix')
+      expect(last_response.body).to include('postfix')
+    end
+
+    it 'includes parameter details for /b64' do
+      get '/api-docs'
+      expect(last_response.body).to include('"body"')
+    end
+  end
+
   describe 'GET /other' do
     it 'returns 404' do
       get '/other'
