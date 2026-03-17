@@ -178,6 +178,8 @@ class App
 
     if request.path == '/'
       [200, { 'content-type' => 'application/json' }, [{ message: 'Welcome' }.to_json]]
+    elsif request.path == '/hello'
+      [200, { 'content-type' => 'application/json' }, [{ message: 'Hello' }.to_json]]
     elsif request.path == '/up'
       [200, { 'content-type' => 'application/json' }, [{ message: "I'm wokring" }.to_json]]
     elsif request.path == '/info'
@@ -196,12 +198,338 @@ class App
       body = request.params['body'].to_s
       encoded = Base64.strict_encode64(body)
       [200, { 'content-type' => 'application/json' }, [{ result: encoded }.to_json]]
+    elsif request.path == '/api-docs'
+      [200, { 'content-type' => 'text/html' }, [api_docs_html]]
     else
       [404, { 'content-type' => 'application/json' }, [{ error: 'Not Found' }.to_json]]
     end
   end
 
   private
+
+  API_ENDPOINTS = [
+    {
+      method: 'GET',
+      path: '/',
+      description: 'Welcome endpoint',
+      response: { message: 'Welcome' },
+      params: []
+    },
+    {
+      method: 'GET',
+      path: '/up',
+      description: 'Health check',
+      response: { message: "I'm wokring" },
+      params: []
+    },
+    {
+      method: 'GET',
+      path: '/info',
+      description: 'App metadata — returns app name, current date, Ruby version, user agent, and client IP',
+      response: { app: 'Test', date: 'YYYY-MM-DD', ruby_version: '3.x.x', user_agent: '...', ip: '...' },
+      params: []
+    },
+    {
+      method: 'GET',
+      path: '/gen',
+      description: 'Generate a random hex token, optionally with a prefix and/or postfix',
+      response: { token: '<prefix_>hex<_postfix>' },
+      params: [
+        { name: 'prefix', type: 'query', required: false, description: 'String prepended to the token with an underscore separator' },
+        { name: 'postfix', type: 'query', required: false, description: 'String appended to the token with an underscore separator' }
+      ]
+    },
+    {
+      method: 'POST',
+      path: '/b64',
+      description: 'Base64-encode a string',
+      response: { result: '<base64-encoded string>' },
+      params: [
+        { name: 'body', type: 'form', required: true, description: 'The string to encode' }
+      ]
+    },
+    {
+      method: 'GET',
+      path: '/about',
+      description: 'HTML landing page with app information (supports lang query param: en, pl, de, fr)',
+      response: nil,
+      params: [
+        { name: 'lang', type: 'query', required: false, description: 'Language code — en (default), pl, de, fr' }
+      ]
+    },
+    {
+      method: 'GET',
+      path: '/api-docs',
+      description: 'This page — HTML documentation of all available endpoints',
+      response: nil,
+      params: []
+    }
+  ].freeze
+
+  def api_docs_html
+    endpoints_json = API_ENDPOINTS.to_json
+    <<~HTML
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>AutoBot — API Docs</title>
+        <style>
+          *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+          :root {
+            --bg: #0a0a0f;
+            --surface: #12121a;
+            --surface2: #1a1a26;
+            --border: rgba(120, 80, 255, 0.2);
+            --accent: #7850ff;
+            --accent2: #00d4ff;
+            --text: #e8e8f0;
+            --muted: #8888aa;
+            --radius: 12px;
+            --get: #22c55e;
+            --post: #f59e0b;
+          }
+
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 2rem;
+          }
+
+          header {
+            max-width: 860px;
+            margin: 0 auto 2.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+          }
+
+          .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+          }
+
+          header h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.02em; }
+          header p { color: var(--muted); margin-top: 0.4rem; }
+
+          main { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 1rem; }
+
+          .endpoint {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+          }
+
+          .endpoint-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.25rem;
+            cursor: pointer;
+            user-select: none;
+          }
+          .endpoint-header:hover { background: var(--surface2); }
+
+          .method {
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            padding: 0.2rem 0.55rem;
+            border-radius: 6px;
+            min-width: 48px;
+            text-align: center;
+          }
+          .method-GET  { background: rgba(34,197,94,0.15);  color: var(--get); }
+          .method-POST { background: rgba(245,158,11,0.15); color: var(--post); }
+
+          .path {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            flex: 1;
+          }
+
+          .desc-short { font-size: 0.85rem; color: var(--muted); }
+
+          .chevron {
+            font-size: 0.75rem;
+            color: var(--muted);
+            transition: transform 0.2s;
+          }
+          .endpoint.open .chevron { transform: rotate(180deg); }
+
+          .endpoint-body {
+            display: none;
+            padding: 1.25rem;
+            border-top: 1px solid var(--border);
+          }
+          .endpoint.open .endpoint-body { display: block; }
+
+          .section-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 0.6rem;
+            margin-top: 1rem;
+          }
+          .section-label:first-child { margin-top: 0; }
+
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+          }
+          th {
+            text-align: left;
+            color: var(--muted);
+            font-weight: 600;
+            padding: 0.4rem 0.75rem;
+            border-bottom: 1px solid var(--border);
+          }
+          td {
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid rgba(120,80,255,0.08);
+            vertical-align: top;
+          }
+          tr:last-child td { border-bottom: none; }
+
+          .param-name { font-family: 'SF Mono', 'Fira Code', monospace; color: var(--accent2); }
+          .param-required {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            background: rgba(245,158,11,0.15);
+            color: var(--post);
+          }
+          .param-optional {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            background: rgba(136,136,170,0.1);
+            color: var(--muted);
+          }
+
+          pre {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.82rem;
+            color: var(--accent2);
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+          }
+
+          .no-params { font-size: 0.85rem; color: var(--muted); font-style: italic; }
+
+          footer {
+            max-width: 860px;
+            margin: 3rem auto 0;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--muted);
+          }
+        </style>
+      </head>
+      <body>
+        <header>
+          <div class="logo">AutoBot</div>
+          <h1>API Documentation</h1>
+          <p>All available endpoints and their usage details.</p>
+        </header>
+
+        <main id="docs"></main>
+
+        <footer>© #{Time.now.year} Autobot. All rights reserved.</footer>
+
+        <script>
+          var endpoints = #{endpoints_json};
+
+          function escapeHtml(str) {
+            return String(str)
+              .replace(/&/g, '&amp;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;')
+              .replace(/"/g, '&quot;');
+          }
+
+          function renderEndpoint(ep) {
+            var paramsHtml = '';
+            if (ep.params && ep.params.length > 0) {
+              var rows = ep.params.map(function(p) {
+                var badge = p.required
+                  ? '<span class="param-required">required</span>'
+                  : '<span class="param-optional">optional</span>';
+                return '<tr>' +
+                  '<td><span class="param-name">' + escapeHtml(p.name) + '</span></td>' +
+                  '<td>' + escapeHtml(p.type) + '</td>' +
+                  '<td>' + badge + '</td>' +
+                  '<td>' + escapeHtml(p.description) + '</td>' +
+                  '</tr>';
+              }).join('');
+              paramsHtml = '<div class="section-label">Parameters</div>' +
+                '<table><thead><tr><th>Name</th><th>In</th><th>Required</th><th>Description</th></tr></thead><tbody>' +
+                rows + '</tbody></table>';
+            } else {
+              paramsHtml = '<div class="section-label">Parameters</div>' +
+                '<p class="no-params">No parameters.</p>';
+            }
+
+            var responseHtml = '';
+            if (ep.response) {
+              responseHtml = '<div class="section-label">Example Response</div>' +
+                '<pre>' + escapeHtml(JSON.stringify(ep.response, null, 2)) + '</pre>';
+            } else {
+              responseHtml = '<div class="section-label">Response</div>' +
+                '<p class="no-params">Returns HTML.</p>';
+            }
+
+            var el = document.createElement('div');
+            el.className = 'endpoint';
+            el.innerHTML =
+              '<div class="endpoint-header">' +
+                '<span class="method method-' + ep.method + '">' + ep.method + '</span>' +
+                '<span class="path">' + escapeHtml(ep.path) + '</span>' +
+                '<span class="desc-short">' + escapeHtml(ep.description) + '</span>' +
+                '<span class="chevron">▼</span>' +
+              '</div>' +
+              '<div class="endpoint-body">' + paramsHtml + responseHtml + '</div>';
+
+            el.querySelector('.endpoint-header').addEventListener('click', function() {
+              el.classList.toggle('open');
+            });
+
+            return el;
+          }
+
+          var container = document.getElementById('docs');
+          endpoints.forEach(function(ep) {
+            container.appendChild(renderEndpoint(ep));
+          });
+        </script>
+      </body>
+      </html>
+    HTML
+  end
 
   def about_html(lang = 'en')
     t = TRANSLATIONS[lang]
