@@ -3,6 +3,7 @@
 source 'https://rubygems.org'
 
 gem 'rack'
+gem 'rackup'
 gem 'base64'
 
 group :test do
