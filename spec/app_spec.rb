@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'rack/test'
+require 'base64'
 require_relative '../app'
 
 RSpec.describe App do
@@ -139,6 +140,28 @@ RSpec.describe App do
       token = JSON.parse(last_response.body)['token']
       expect(token).to start_with('usr_')
       expect(token).to end_with('_dev')
+    end
+  end
+
+  describe 'POST /b64' do
+    it 'returns 200' do
+      post '/b64', body: 'hello'
+      expect(last_response.status).to eq(200)
+    end
+
+    it 'returns JSON content type' do
+      post '/b64', body: 'hello'
+      expect(last_response.content_type).to eq('application/json')
+    end
+
+    it 'returns base64 encoded body in result' do
+      post '/b64', body: 'hello'
+      expect(JSON.parse(last_response.body)).to eq('result' => Base64.strict_encode64('hello'))
+    end
+
+    it 'encodes arbitrary strings' do
+      post '/b64', body: 'Test Autobot 123!'
+      expect(JSON.parse(last_response.body)['result']).to eq(Base64.strict_encode64('Test Autobot 123!'))
     end
   end
 
