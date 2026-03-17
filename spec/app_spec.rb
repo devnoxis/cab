@@ -130,6 +130,26 @@ RSpec.describe App do
       expect(last_response.body).to include('localStorage')
     end
 
+    it 'includes language persistence script using localStorage' do
+      get '/about'
+      expect(last_response.body).to include('autobot-lang')
+    end
+
+    it 'saves lang to localStorage when lang param is present' do
+      get '/about'
+      expect(last_response.body).to include("localStorage.setItem(LANG_KEY, params.get('lang'))")
+    end
+
+    it 'redirects to stored lang when no lang param is in the URL' do
+      get '/about'
+      expect(last_response.body).to include("window.location.replace('?lang=' + stored)")
+    end
+
+    it 'validates lang value against allowed list before persisting' do
+      get '/about'
+      expect(last_response.body).to include("validLangs.indexOf(params.get('lang')) !== -1")
+    end
+
     it 'includes system theme detection via prefers-color-scheme' do
       get '/about'
       expect(last_response.body).to include('prefers-color-scheme')
