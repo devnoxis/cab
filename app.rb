@@ -730,6 +730,30 @@ class App
 
         <script>
           (function () {
+            var LANG_KEY = 'autobot-lang';
+            var validLangs = ['en', 'pl', 'de', 'fr'];
+            var params = new URLSearchParams(window.location.search);
+            if (params.has('lang') && validLangs.indexOf(params.get('lang')) !== -1) {
+              localStorage.setItem(LANG_KEY, params.get('lang'));
+            } else if (!params.has('lang')) {
+              var stored = localStorage.getItem(LANG_KEY);
+              if (stored && validLangs.indexOf(stored) !== -1) {
+                window.location.replace('?lang=' + stored);
+              }
+            }
+            document.querySelectorAll('.lang-link').forEach(function (link) {
+              link.addEventListener('click', function () {
+                var match = (this.getAttribute('href') || '').match(/lang=([a-z]+)/);
+                if (match && validLangs.indexOf(match[1]) !== -1) {
+                  localStorage.setItem(LANG_KEY, match[1]);
+                }
+              });
+            });
+          })();
+        </script>
+
+        <script>
+          (function () {
             var STORAGE_KEY = 'autobot-theme';
             var btn = document.getElementById('theme-toggle');
 
