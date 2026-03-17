@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git:*)",
+      "Bash(rbenv version:*)",
+      "Bash(rvm current:*)",
+      "Bash(bundle install:*)"
+    ]
+  }
+}
