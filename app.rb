@@ -9,6 +9,8 @@ class App
 
     if request.path == '/'
       [200, { 'content-type' => 'application/json' }, [{ message: 'Welcome' }.to_json]]
+    elsif request.path == '/up'
+      [200, { 'content-type' => 'application/json' }, [{ message: "I'm wokring" }.to_json]]
     else
       [404, { 'content-type' => 'application/json' }, [{ error: 'Not Found' }.to_json]]
     end

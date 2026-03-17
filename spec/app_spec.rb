@@ -27,6 +27,23 @@ RSpec.describe App do
     end
   end
 
+  describe 'GET /up' do
+    it 'returns 200' do
+      get '/up'
+      expect(last_response.status).to eq(200)
+    end
+
+    it 'returns JSON content type' do
+      get '/up'
+      expect(last_response.content_type).to eq('application/json')
+    end
+
+    it 'returns working JSON body' do
+      get '/up'
+      expect(JSON.parse(last_response.body)).to eq('message' => "I'm wokring")
+    end
+  end
+
   describe 'GET /other' do
     it 'returns 404' do
       get '/other'
