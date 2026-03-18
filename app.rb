@@ -181,7 +181,7 @@ class App
     elsif request.path == '/hello'
       [200, { 'content-type' => 'application/json' }, [{ message: 'Hello' }.to_json]]
     elsif request.path == '/up'
-      [200, { 'content-type' => 'application/json' }, [{ message: "I'm wokring" }.to_json]]
+      [200, { 'content-type' => 'application/json' }, [{ status: 'ok', message: 'Service is up and running' }.to_json]]
     elsif request.path == '/info'
       [200, { 'content-type' => 'application/json' }, [{ app: 'Test', date: Time.now.strftime('%Y-%m-%d'), ruby_version: RUBY_VERSION, user_agent: request.user_agent, ip: request.ip }.to_json]]
     elsif request.path == '/about'
@@ -219,7 +219,7 @@ class App
       method: 'GET',
       path: '/up',
       description: 'Health check',
-      response: { message: "I'm wokring" },
+      response: { status: 'ok', message: 'Service is up and running' },
       params: []
     },
     {

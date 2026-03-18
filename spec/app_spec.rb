@@ -41,7 +41,7 @@ RSpec.describe App do
 
     it 'returns working JSON body' do
       get '/up'
-      expect(JSON.parse(last_response.body)).to eq('message' => "I'm wokring")
+      expect(JSON.parse(last_response.body)).to eq('status' => 'ok', 'message' => 'Service is up and running')
     end
   end
 
