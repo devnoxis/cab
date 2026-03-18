@@ -181,7 +181,11 @@ class App
     elsif request.path == '/hello'
       [200, { 'content-type' => 'application/json' }, [{ message: 'Hello' }.to_json]]
     elsif request.path == '/up'
-      [200, { 'content-type' => 'application/json' }, [{ message: "I'm wokring" }.to_json]]
+      if request.env['HTTP_ACCEPT'].to_s.include?('text/html')
+        [200, { 'content-type' => 'text/html' }, [up_html]]
+      else
+        [200, { 'content-type' => 'application/json' }, [{ message: "I'm wokring" }.to_json]]
+      end
     elsif request.path == '/info'
       [200, { 'content-type' => 'application/json' }, [{ app: 'Test', date: Time.now.strftime('%Y-%m-%d'), ruby_version: RUBY_VERSION, user_agent: request.user_agent, ip: request.ip }.to_json]]
     elsif request.path == '/about'
@@ -527,6 +531,18 @@ class App
           });
         </script>
       </body>
+      </html>
+    HTML
+  end
+
+  def up_html
+    <<~HTML
+      <!DOCTYPE html>
+      <html>
+        <head><title>Up</title></head>
+        <body style="background:#22c55e;display:flex;align-items:center;justify-content:center;height:100vh;margin:0">
+          <h1 style="color:#fff;font-family:sans-serif">Service is up and running</h1>
+        </body>
       </html>
     HTML
   end
