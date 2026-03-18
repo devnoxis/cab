@@ -1,0 +1,13 @@
+{
+  "title": "Make new endpoint /lang — GET /lang returns list of supported languages as JSON",
+  "description": "## Overview\n\nImplement the `GET /lang` endpoint so that it returns a JSON array of all language codes currently supported by the application.\n\nThe existing `TRANSLATIONS` constant in `app.rb` already defines all supported languages (`en`, `pl`, `de`, `fr`). The endpoint should derive the list directly from that constant's keys.\n\n## Reference\n\nParent ticket: https://linear.app/axbots/issue/TES-25/make-new-endpoint-lang\n\n## Expected response\n\n```json\n{\n  \"languages\": [\"en\", \"pl\", \"de\", \"fr\"]\n}\n```\n\n## Implementation notes\n\n- Route: `GET /lang` (no query params required for this sub-task)\n- Response `content-type` must be `application/json`\n- Language list must be derived from `TRANSLATIONS.keys` so it stays in sync automatically when new languages are added\n- Follow the same routing pattern used by existing endpoints in `app.rb`",
+  "scope": "Add the GET /lang route that lists all available language codes as a JSON response.",
+  "acceptance_criteria": [
+    "GET /lang returns HTTP 200",
+    "Response Content-Type header is application/json",
+    "Response body is valid JSON containing a 'languages' key with an array of all language codes from TRANSLATIONS",
+    "Language list matches TRANSLATIONS.keys (currently: en, pl, de, fr)",
+    "RSpec test covers the endpoint and asserts the above"
+  ],
+  "relation_to_original": "Implements the 'show all possible languages' bullet point from the parent ticket."
+}
