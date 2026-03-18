@@ -1,0 +1,13 @@
+{
+  "title": "Make new endpoint /lang — Register /lang in API docs and ensure strict JSON-only responses",
+  "description": "## Overview\n\nOnce the `/lang` endpoint is functional (sub-tasks 01 and 02), this sub-task covers two housekeeping items:\n\n1. **Register `/lang` in `API_ENDPOINTS`** inside `app.rb` so it appears in the `/api-docs` HTML page with correct method, path, description, and parameter documentation.\n2. **Verify that all `/lang` responses are strictly JSON** — confirm there is no code path that could return HTML or plain text, and that error cases (wrong method, etc.) fall through to the existing 404 JSON handler.\n\n## Reference\n\nParent ticket: https://linear.app/axbots/issue/TES-25/make-new-endpoint-lang\n\n## API_ENDPOINTS entry to add\n\n```ruby\n{\n  method: 'GET',\n  path: '/lang',\n  description: 'List all supported languages and optionally return a localised welcome message',\n  response: { languages: ['en', 'pl', 'de', 'fr'], selected_language: 'en', welcome: 'Welcome' },\n  params: [\n    { name: 'lang', type: 'query', required: false, description: 'Language code to select (defaults to en)' }\n  ]\n}\n```\n\n## Implementation notes\n\n- No new behaviour — this sub-task is purely documentation and verification\n- Confirm that `POST /lang`, `DELETE /lang`, etc. all return the existing 404 JSON response (no special handling needed)\n- All response bodies from `GET /lang` must be parseable as JSON with no HTML fragments",
+  "scope": "Document the /lang endpoint in API_ENDPOINTS and verify all its responses are JSON-only with no HTML leakage.",
+  "acceptance_criteria": [
+    "GET /api-docs page lists the /lang endpoint with correct method, path, description, and lang param",
+    "API_ENDPOINTS constant contains an entry for GET /lang",
+    "POST /lang returns 404 JSON (falls through to the existing catch-all)",
+    "Every response from GET /lang has Content-Type: application/json",
+    "RSpec test or existing test suite passes without regression"
+  ],
+  "relation_to_original": "Satisfies the 'make responses in json' bullet point from the parent ticket and keeps the API docs in sync."
+}

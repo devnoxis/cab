@@ -203,6 +203,8 @@ class App
       body = request.params['body'].to_s
       encoded = Base64.strict_encode64(body)
       [200, { 'content-type' => 'application/json' }, [{ result: encoded }.to_json]]
+    elsif request.path == '/stats'
+      [200, { 'content-type' => 'application/json' }, [{ count: 5, amount: 1000 }.to_json]]
     elsif request.path == '/api-docs'
       [200, { 'content-type' => 'text/html' }, [api_docs_html]]
     else

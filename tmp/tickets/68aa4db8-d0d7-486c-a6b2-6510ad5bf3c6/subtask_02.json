@@ -1,0 +1,17 @@
+{
+  "title": "Make new endpoint /lang — GET /lang?lang=<code> returns localised welcome message as JSON",
+  "description": "## Overview\n\nExtend the `GET /lang` endpoint (added in sub-task 01) to accept an optional `lang` query parameter. When provided with a valid language code, the response must include a localised welcome message for that language. When the parameter is absent or invalid, fall back to English (`en`).\n\nThe `TRANSLATIONS` constant in `app.rb` already contains per-language keys; a `welcome` key (or equivalent greeting key) should be used — or added to `TRANSLATIONS` if one does not yet exist.\n\n## Reference\n\nParent ticket: https://linear.app/axbots/issue/TES-25/make-new-endpoint-lang\n\n## Expected response (e.g. GET /lang?lang=pl)\n\n```json\n{\n  \"languages\": [\"en\", \"pl\", \"de\", \"fr\"],\n  \"selected_language\": \"pl\",\n  \"welcome\": \"Witaj\"\n}\n```\n\n## Fallback behaviour (unknown lang or no lang param)\n\n```json\n{\n  \"languages\": [\"en\", \"pl\", \"de\", \"fr\"],\n  \"selected_language\": \"en\",\n  \"welcome\": \"Welcome\"\n}\n```\n\n## Implementation notes\n\n- Reuse the same `GET /lang` route from sub-task 01; this sub-task extends its behaviour\n- Use `TRANSLATIONS.key?(request.params['lang'])` for validation (same pattern as `/about`)\n- Each language entry in `TRANSLATIONS` must have a `welcome` key with an appropriate greeting string\n- Response `content-type` must remain `application/json`",
+  "scope": "Extend GET /lang to accept a lang query param and return a localised welcome message in the JSON response.",
+  "acceptance_criteria": [
+    "GET /lang?lang=en returns welcome message in English",
+    "GET /lang?lang=pl returns welcome message in Polish",
+    "GET /lang?lang=de returns welcome message in German",
+    "GET /lang?lang=fr returns welcome message in French",
+    "GET /lang with no lang param defaults to 'en'",
+    "GET /lang?lang=xx (unsupported code) defaults to 'en'",
+    "Response always includes 'languages', 'selected_language', and 'welcome' keys",
+    "Response Content-Type is application/json",
+    "RSpec tests cover valid language selection, default fallback, and unknown language fallback"
+  ],
+  "relation_to_original": "Implements the 'print welcome with selected language' bullet point from the parent ticket."
+}

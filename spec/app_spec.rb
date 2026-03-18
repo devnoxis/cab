@@ -467,6 +467,23 @@ RSpec.describe App do
     end
   end
 
+  describe 'GET /stats' do
+    it 'returns 200' do
+      get '/stats'
+      expect(last_response.status).to eq(200)
+    end
+
+    it 'returns JSON content type' do
+      get '/stats'
+      expect(last_response.content_type).to eq('application/json')
+    end
+
+    it 'returns count 5 and amount 1000' do
+      get '/stats'
+      expect(JSON.parse(last_response.body)).to eq('count' => 5, 'amount' => 1000)
+    end
+  end
+
   describe 'GET /other' do
     it 'returns 404' do
       get '/other'
