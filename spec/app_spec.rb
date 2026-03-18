@@ -43,6 +43,28 @@ RSpec.describe App do
       get '/up'
       expect(JSON.parse(last_response.body)).to eq('message' => "I'm wokring")
     end
+
+    context 'when Accept: text/html' do
+      it 'returns 200' do
+        get '/up', {}, 'HTTP_ACCEPT' => 'text/html'
+        expect(last_response.status).to eq(200)
+      end
+
+      it 'returns HTML content type' do
+        get '/up', {}, 'HTTP_ACCEPT' => 'text/html'
+        expect(last_response.content_type).to eq('text/html')
+      end
+
+      it 'returns a green background page' do
+        get '/up', {}, 'HTTP_ACCEPT' => 'text/html'
+        expect(last_response.body).to include('#22c55e')
+      end
+
+      it 'includes service is up message' do
+        get '/up', {}, 'HTTP_ACCEPT' => 'text/html'
+        expect(last_response.body).to include('Service is up and running')
+      end
+    end
   end
 
   describe 'GET /info' do
