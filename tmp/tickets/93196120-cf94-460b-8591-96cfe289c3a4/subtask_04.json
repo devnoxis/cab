@@ -1,0 +1,13 @@
+{
+  "title": "Update /up endpoint — Markdown format response",
+  "description": "When the `/up` endpoint is requested with `Accept: text/markdown`, it should return a plain-text Markdown document confirming the service is up.\n\nExample response body:\n```markdown\n# Service Status\n\n**Status:** up and running\n```\n\nThe response must use `Content-Type: text/markdown` and must not include any HTML.\n\nParent ticket: https://linear.app/axbots/issue/TES-18/update-up-endpoint",
+  "scope": "Implement and test the Markdown response variant of the /up endpoint.",
+  "acceptance_criteria": [
+    "GET /up with Accept: text/markdown returns HTTP 200",
+    "Response Content-Type is text/markdown",
+    "Response body is valid Markdown (plain text, no HTML tags)",
+    "Body communicates that the service is up and running",
+    "RSpec test covers the Markdown format path"
+  ],
+  "relation_to_original": "Implements the 'markdown — plain text info that service is up and running' requirement from the parent ticket."
+}
