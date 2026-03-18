@@ -34,14 +34,82 @@ RSpec.describe App do
       expect(last_response.status).to eq(200)
     end
 
-    it 'returns JSON content type' do
+    it 'returns JSON content type by default' do
       get '/up'
       expect(last_response.content_type).to eq('application/json')
     end
 
-    it 'returns working JSON body' do
+    it 'returns working JSON body by default' do
       get '/up'
       expect(JSON.parse(last_response.body)).to eq('message' => "I'm wokring")
+    end
+
+    context 'when Accept: text/html' do
+      it 'returns HTML content type' do
+        get '/up', {}, 'HTTP_ACCEPT' => 'text/html'
+        expect(last_response.content_type).to eq('text/html')
+      end
+
+      it 'returns HTML body' do
+        get '/up', {}, 'HTTP_ACCEPT' => 'text/html'
+        expect(last_response.body).to include('<html>')
+        expect(last_response.body).to include('OK')
+      end
+    end
+
+    context 'when Accept: text/markdown' do
+      it 'returns markdown content type' do
+        get '/up', {}, 'HTTP_ACCEPT' => 'text/markdown'
+        expect(last_response.content_type).to eq('text/markdown')
+      end
+
+      it 'returns markdown body' do
+        get '/up', {}, 'HTTP_ACCEPT' => 'text/markdown'
+        expect(last_response.body).to include('# OK')
+      end
+    end
+
+    context 'when format=html query param' do
+      it 'returns HTML content type' do
+        get '/up?format=html'
+        expect(last_response.content_type).to eq('text/html')
+      end
+
+      it 'returns HTML body' do
+        get '/up?format=html'
+        expect(last_response.body).to include('<html>')
+      end
+    end
+
+    context 'when format=markdown query param' do
+      it 'returns markdown content type' do
+        get '/up?format=markdown'
+        expect(last_response.content_type).to eq('text/markdown')
+      end
+
+      it 'returns markdown body' do
+        get '/up?format=markdown'
+        expect(last_response.body).to include('# OK')
+      end
+    end
+
+    context 'when format=json query param' do
+      it 'returns JSON content type' do
+        get '/up?format=json'
+        expect(last_response.content_type).to eq('application/json')
+      end
+
+      it 'returns JSON body' do
+        get '/up?format=json'
+        expect(JSON.parse(last_response.body)).to eq('message' => "I'm wokring")
+      end
+    end
+
+    context 'when format param overrides Accept header' do
+      it 'uses format param when both are present' do
+        get '/up?format=html', {}, 'HTTP_ACCEPT' => 'application/json'
+        expect(last_response.content_type).to eq('text/html')
+      end
     end
   end
 

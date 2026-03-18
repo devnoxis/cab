@@ -181,7 +181,26 @@ class App
     elsif request.path == '/hello'
       [200, { 'content-type' => 'application/json' }, [{ message: 'Hello' }.to_json]]
     elsif request.path == '/up'
-      [200, { 'content-type' => 'application/json' }, [{ message: "I'm wokring" }.to_json]]
+      accept = request.env['HTTP_ACCEPT'].to_s
+      fmt = request.params['format']
+      format =
+        if fmt == 'html' || (fmt.nil? && accept.include?('text/html'))
+          :html
+        elsif fmt == 'markdown' || (fmt.nil? && accept.include?('text/markdown'))
+          :markdown
+        else
+          :json
+        end
+      case format
+      when :html
+        body = "<html><body><h1>OK</h1><p>I'm working</p></body></html>"
+        [200, { 'content-type' => 'text/html' }, [body]]
+      when :markdown
+        body = "# OK\n\nI'm working\n"
+        [200, { 'content-type' => 'text/markdown' }, [body]]
+      else
+        [200, { 'content-type' => 'application/json' }, [{ message: "I'm wokring" }.to_json]]
+      end
     elsif request.path == '/info'
       [200, { 'content-type' => 'application/json' }, [{ app: 'Test', date: Time.now.strftime('%Y-%m-%d'), ruby_version: RUBY_VERSION, user_agent: request.user_agent, ip: request.ip }.to_json]]
     elsif request.path == '/about'
