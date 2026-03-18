@@ -181,7 +181,12 @@ class App
     elsif request.path == '/hello'
       [200, { 'content-type' => 'application/json' }, [{ message: 'Hello' }.to_json]]
     elsif request.path == '/up'
-      [200, { 'content-type' => 'application/json' }, [{ status: 'ok', message: 'Service is up and running' }.to_json]]
+      if request.env['HTTP_ACCEPT'] == 'text/markdown'
+        body = "# Service Status\n\n**Status:** up and running\n"
+        [200, { 'content-type' => 'text/markdown' }, [body]]
+      else
+        [200, { 'content-type' => 'application/json' }, [{ status: 'ok', message: 'Service is up and running' }.to_json]]
+      end
     elsif request.path == '/info'
       [200, { 'content-type' => 'application/json' }, [{ app: 'Test', date: Time.now.strftime('%Y-%m-%d'), ruby_version: RUBY_VERSION, user_agent: request.user_agent, ip: request.ip }.to_json]]
     elsif request.path == '/about'

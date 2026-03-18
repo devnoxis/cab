@@ -1,0 +1,14 @@
+{
+  "title": "Update /up endpoint — HTML format response (green page)",
+  "description": "When the `/up` endpoint is requested with `Accept: text/html`, it should return a minimal HTML page with a green background indicating the service is healthy.\n\nExample implementation:\n```html\n<!DOCTYPE html>\n<html>\n  <head><title>Up</title></head>\n  <body style=\"background:#22c55e;display:flex;align-items:center;justify-content:center;height:100vh;margin:0\">\n    <h1 style=\"color:#fff;font-family:sans-serif\">Service is up and running</h1>\n  </body>\n</html>\n```\n\nParent ticket: https://linear.app/axbots/issue/TES-18/update-up-endpoint",
+  "scope": "Implement and test the HTML response variant of the /up endpoint that renders a green status page.",
+  "acceptance_criteria": [
+    "GET /up with Accept: text/html returns HTTP 200",
+    "Response Content-Type is text/html",
+    "Response body is valid HTML",
+    "Page has a visually green background (inline style or CSS class)",
+    "Page contains human-readable text confirming the service is up",
+    "RSpec test covers the HTML format path"
+  ],
+  "relation_to_original": "Implements the 'html — green page' requirement from the parent ticket."
+}

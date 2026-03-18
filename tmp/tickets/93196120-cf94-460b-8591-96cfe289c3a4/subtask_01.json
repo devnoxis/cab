@@ -1,0 +1,13 @@
+{
+  "title": "Update /up endpoint — content negotiation via Accept header",
+  "description": "The `/up` endpoint currently always returns JSON. It needs to inspect the `Accept` request header (or a `format` query param as fallback) and dispatch to the appropriate response format: `text/html`, `application/json`, or `text/markdown`.\n\nThis is the routing/dispatch layer that the format-specific sub-tasks depend on.\n\nParent ticket: https://linear.app/axbots/issue/TES-18/update-up-endpoint",
+  "scope": "Add content-negotiation logic to the /up endpoint so it selects the correct response format based on the Accept header.",
+  "acceptance_criteria": [
+    "Request with `Accept: application/json` returns JSON response",
+    "Request with `Accept: text/html` returns HTML response",
+    "Request with `Accept: text/markdown` returns Markdown response",
+    "Default (no Accept header or `*/*`) falls back to JSON for backwards compatibility",
+    "Content-Type response header matches the format served"
+  ],
+  "relation_to_original": "Core infrastructure change required by the parent ticket; all three format variants depend on this dispatch logic being in place."
+}

@@ -1,0 +1,13 @@
+{
+  "title": "Update /up endpoint — JSON format response",
+  "description": "The `/up` endpoint already returns JSON, but the current response body contains a typo (`\"I'm wokring\"`). This sub-task ensures the JSON format is correct, consistent, and covered by tests.\n\nExpected response body:\n```json\n{ \"status\": \"ok\", \"message\": \"Service is up and running\" }\n```\n\nParent ticket: https://linear.app/axbots/issue/TES-18/update-up-endpoint",
+  "scope": "Ensure the /up endpoint returns a well-formed, typo-free JSON body when the JSON format is requested.",
+  "acceptance_criteria": [
+    "GET /up with Accept: application/json returns HTTP 200",
+    "Response Content-Type is application/json",
+    "Response body is valid JSON with a status/message field indicating the service is up",
+    "No typos in the response message",
+    "Existing JSON behaviour is not broken for clients that omit an Accept header"
+  ],
+  "relation_to_original": "Covers the JSON format requirement from the parent ticket and fixes the pre-existing typo in the current response."
+}

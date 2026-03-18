@@ -43,6 +43,29 @@ RSpec.describe App do
       get '/up'
       expect(JSON.parse(last_response.body)).to eq('status' => 'ok', 'message' => 'Service is up and running')
     end
+
+    context 'when Accept: text/markdown' do
+      it 'returns 200' do
+        get '/up', {}, 'HTTP_ACCEPT' => 'text/markdown'
+        expect(last_response.status).to eq(200)
+      end
+
+      it 'returns text/markdown content type' do
+        get '/up', {}, 'HTTP_ACCEPT' => 'text/markdown'
+        expect(last_response.content_type).to eq('text/markdown')
+      end
+
+      it 'returns markdown status body' do
+        get '/up', {}, 'HTTP_ACCEPT' => 'text/markdown'
+        expect(last_response.body).to include('# Service Status')
+        expect(last_response.body).to include('**Status:** up and running')
+      end
+
+      it 'does not include HTML' do
+        get '/up', {}, 'HTTP_ACCEPT' => 'text/markdown'
+        expect(last_response.body).not_to match(/<[a-z]/)
+      end
+    end
   end
 
   describe 'GET /info' do
