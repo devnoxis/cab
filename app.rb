@@ -185,7 +185,7 @@ class App
         body = "# Service Status\n\n**Status:** up and running\n"
         [200, { 'content-type' => 'text/markdown' }, [body]]
       else
-        [200, { 'content-type' => 'application/json' }, [{ message: "I'm wokring" }.to_json]]
+        [200, { 'content-type' => 'application/json' }, [{ status: 'ok', message: 'Service is up and running' }.to_json]]
       end
     elsif request.path == '/info'
       [200, { 'content-type' => 'application/json' }, [{ app: 'Test', date: Time.now.strftime('%Y-%m-%d'), ruby_version: RUBY_VERSION, user_agent: request.user_agent, ip: request.ip }.to_json]]
@@ -224,7 +224,7 @@ class App
       method: 'GET',
       path: '/up',
       description: 'Health check',
-      response: { message: "I'm wokring" },
+      response: { status: 'ok', message: 'Service is up and running' },
       params: []
     },
     {
