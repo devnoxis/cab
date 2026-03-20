@@ -173,6 +173,9 @@ TRANSLATIONS = {
 }.freeze
 
 class App
+  APP_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+  APP_NAME = 'Test Autobot'
+
   def call(env)
     request = Rack::Request.new(env)
 
@@ -203,6 +206,8 @@ class App
       body = request.params['body'].to_s
       encoded = Base64.strict_encode64(body)
       [200, { 'content-type' => 'application/json' }, [{ result: encoded }.to_json]]
+    elsif request.path == '/id'
+      [200, { 'content-type' => 'application/json' }, [{ app_id: APP_ID, app_name: APP_NAME }.to_json]]
     elsif request.path == '/stats'
       [200, { 'content-type' => 'application/json' }, [{ count: 5, amount: 1000 }.to_json]]
     elsif request.path == '/api-docs'
