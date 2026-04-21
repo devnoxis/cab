@@ -467,6 +467,25 @@ RSpec.describe App do
     end
   end
 
+  describe 'GET /id' do
+    it 'returns 200' do
+      get '/id'
+      expect(last_response.status).to eq(200)
+    end
+
+    it 'returns JSON content type' do
+      get '/id'
+      expect(last_response.content_type).to eq('application/json')
+    end
+
+    it 'returns app_id and app_name' do
+      get '/id'
+      body = JSON.parse(last_response.body)
+      expect(body['app_id']).to eq(App::APP_ID)
+      expect(body['app_name']).to eq(App::APP_NAME)
+    end
+  end
+
   describe 'GET /stats' do
     it 'returns 200' do
       get '/stats'
