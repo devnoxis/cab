@@ -207,6 +207,10 @@ class App
       [200, { 'content-type' => 'application/json' }, [{ count: 5, amount: 1000 }.to_json]]
     elsif request.path == '/api-docs'
       [200, { 'content-type' => 'text/html' }, [api_docs_html]]
+    elsif request.path == '/profile'
+      state = request.params['state']
+      state = 'default' unless %w[default loading empty error disabled].include?(state)
+      [200, { 'content-type' => 'text/html' }, [profile_html(state)]]
     else
       [404, { 'content-type' => 'application/json' }, [{ error: 'Not Found' }.to_json]]
     end
@@ -1116,6 +1120,678 @@ class App
 
       </body>
       </html>
+    HTML
+  end
+
+  def profile_html(state = 'default') # rubocop:disable Metrics/MethodLength
+    <<~HTML
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>AutoBot — User Profile</title>
+        <style>
+          *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+          :root {
+            --bg: #0a0a0f;
+            --surface: #12121a;
+            --surface2: #1a1a26;
+            --border: rgba(120, 80, 255, 0.2);
+            --accent: #7850ff;
+            --accent2: #00d4ff;
+            --text: #e8e8f0;
+            --muted: #8888aa;
+            --radius: 16px;
+            --nav-bg: rgba(10, 10, 15, 0.8);
+            --error: #ff4466;
+            --warning: #f59e0b;
+            --success: #22c55e;
+          }
+
+          [data-theme="light"] {
+            --bg: #f5f5fa;
+            --surface: #ffffff;
+            --surface2: #ebebf5;
+            --border: rgba(96, 64, 238, 0.2);
+            --accent: #6040ee;
+            --accent2: #0099cc;
+            --text: #1a1a2e;
+            --muted: #555577;
+            --nav-bg: rgba(245, 245, 250, 0.85);
+          }
+
+          html { scroll-behavior: smooth; }
+
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+          }
+
+          /* ── Nav ── */
+          nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 2rem;
+            backdrop-filter: blur(12px);
+            background: var(--nav-bg);
+            border-bottom: 1px solid var(--border);
+          }
+          .nav-logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+          }
+          .nav-right { display: flex; align-items: center; gap: 1rem; }
+          .nav-link { color: var(--muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+          .nav-link:hover { color: var(--text); }
+          #theme-toggle {
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.4rem 0.7rem;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 1rem;
+            transition: border-color 0.2s, color 0.2s;
+          }
+          #theme-toggle:hover { border-color: var(--accent); color: var(--text); }
+
+          /* ── Layout ── */
+          .page {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 7rem 2rem 4rem;
+          }
+
+          /* ── State tabs ── */
+          .state-tabs {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+          }
+          .state-tab {
+            padding: 0.35rem 0.9rem;
+            border-radius: 100px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-decoration: none;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
+          }
+          .state-tab:hover { color: var(--text); background: var(--surface2); }
+          .state-tab.active {
+            background: rgba(120, 80, 255, 0.15);
+            border-color: var(--accent);
+            color: var(--accent);
+          }
+
+          /* ── Profile card ── */
+          .profile-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+          }
+
+          /* Banner */
+          .profile-banner {
+            height: 140px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 60%, #ff5090 100%);
+            position: relative;
+          }
+
+          /* Avatar */
+          .avatar-wrap {
+            position: absolute;
+            bottom: -44px;
+            left: 2rem;
+          }
+          .avatar {
+            width: 88px;
+            height: 88px;
+            border-radius: 50%;
+            border: 4px solid var(--surface);
+            background: var(--surface2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent2);
+            overflow: hidden;
+          }
+
+          /* Profile body */
+          .profile-body { padding: 3.5rem 2rem 2rem; }
+
+          .profile-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+          }
+          .profile-name { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+          .profile-handle { color: var(--muted); font-size: 0.9rem; margin-top: 0.15rem; }
+
+          .role-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            background: rgba(120, 80, 255, 0.15);
+            border: 1px solid rgba(120, 80, 255, 0.35);
+            color: var(--accent);
+          }
+
+          .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.55rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            border: none;
+            transition: opacity 0.2s, transform 0.2s;
+          }
+          .btn:hover:not(:disabled) { opacity: 0.85; transform: translateY(-1px); }
+          .btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff;
+          }
+          .btn-ghost {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+          }
+          .btn-ghost:hover:not(:disabled) { background: var(--surface2); }
+          .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+          /* Bio */
+          .profile-bio {
+            color: var(--muted);
+            font-size: 0.95rem;
+            max-width: 540px;
+            margin-bottom: 1.5rem;
+            line-height: 1.7;
+          }
+
+          /* Meta row */
+          .profile-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+          }
+          .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.85rem;
+            color: var(--muted);
+          }
+          .meta-item .icon { font-size: 0.9rem; }
+
+          /* Stats strip */
+          .stats-strip {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px;
+            background: var(--border);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+          }
+          .stat-cell {
+            background: var(--surface2);
+            padding: 1.1rem;
+            text-align: center;
+          }
+          .stat-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: block;
+            margin-bottom: 0.15rem;
+          }
+          .stat-label { font-size: 0.75rem; color: var(--muted); }
+
+          /* Activity */
+          .section-heading {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 1rem;
+          }
+          .activity-list { display: flex; flex-direction: column; gap: 0.75rem; }
+          .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            padding: 0.75rem 1rem;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.875rem;
+          }
+          .activity-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+          }
+          .activity-icon.commit { background: rgba(120,80,255,0.15); color: var(--accent); }
+          .activity-icon.review { background: rgba(0,212,255,0.12); color: var(--accent2); }
+          .activity-icon.deploy { background: rgba(34,197,94,0.12); color: var(--success); }
+          .activity-text { flex: 1; }
+          .activity-time { font-size: 0.75rem; color: var(--muted); flex-shrink: 0; }
+
+          /* ── Loading state: skeleton ── */
+          @keyframes shimmer {
+            0%   { background-position: -600px 0; }
+            100% { background-position: 600px 0; }
+          }
+          .skeleton {
+            background: linear-gradient(90deg,
+              var(--surface2) 25%,
+              rgba(120,80,255,0.06) 50%,
+              var(--surface2) 75%);
+            background-size: 600px 100%;
+            animation: shimmer 1.4s infinite linear;
+            border-radius: 6px;
+          }
+          .sk-banner { height: 140px; border-radius: 0; }
+          .sk-avatar {
+            width: 88px; height: 88px;
+            border-radius: 50%;
+            margin-bottom: 0.75rem;
+          }
+          .sk-line { height: 14px; margin-bottom: 0.5rem; }
+          .sk-w40 { width: 40%; }
+          .sk-w60 { width: 60%; }
+          .sk-w80 { width: 80%; }
+          .sk-w100 { width: 100%; }
+          .sk-stat { height: 60px; border-radius: 8px; }
+          .sk-row { height: 52px; border-radius: 10px; }
+
+          /* ── Empty state ── */
+          .empty-state {
+            padding: 4rem 2rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+          }
+          .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.4;
+          }
+          .empty-title { font-size: 1.1rem; font-weight: 600; }
+          .empty-desc { color: var(--muted); font-size: 0.9rem; max-width: 320px; }
+
+          /* ── Error state ── */
+          .error-state {
+            padding: 4rem 2rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+          }
+          .error-icon {
+            width: 56px; height: 56px;
+            border-radius: 50%;
+            background: rgba(255,68,102,0.12);
+            border: 1px solid rgba(255,68,102,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+          }
+          .error-title { font-size: 1.1rem; font-weight: 600; color: var(--error); }
+          .error-desc { color: var(--muted); font-size: 0.9rem; max-width: 360px; }
+          .error-code {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.75rem;
+            color: var(--muted);
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            padding: 0.3rem 0.7rem;
+            border-radius: 6px;
+            margin-top: 0.25rem;
+          }
+
+          /* ── Disabled state ── */
+          .disabled-banner {
+            background: rgba(136,136,170,0.15) !important;
+          }
+          .disabled-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .disabled-chip {
+            padding: 0.3rem 0.8rem;
+            background: rgba(245,158,11,0.15);
+            border: 1px solid rgba(245,158,11,0.4);
+            border-radius: 100px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--warning);
+          }
+          .account-disabled .profile-name,
+          .account-disabled .profile-handle,
+          .account-disabled .profile-bio,
+          .account-disabled .meta-item { opacity: 0.45; }
+          .account-disabled .stat-value { opacity: 0.4; }
+          .disabled-notice {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            background: rgba(245,158,11,0.08);
+            border: 1px solid rgba(245,158,11,0.3);
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+            color: var(--warning);
+          }
+          .disabled-notice strong { display: block; margin-bottom: 0.2rem; }
+
+          /* ── Footer ── */
+          footer {
+            max-width: 860px;
+            margin: 3rem auto 0;
+            padding: 1.5rem 2rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--muted);
+          }
+        </style>
+      </head>
+      <body>
+
+        <nav>
+          <a class="nav-logo" href="/">AutoBot</a>
+          <div class="nav-right">
+            <a class="nav-link" href="/about">About</a>
+            <a class="nav-link" href="/api-docs">API Docs</a>
+            <button id="theme-toggle" aria-label="Toggle theme">&#9680;</button>
+          </div>
+        </nav>
+
+        <div class="page">
+
+          <!-- State switcher -->
+          <div class="state-tabs" role="tablist" aria-label="Profile states">
+            <a href="?state=default"  class="state-tab #{state == 'default'  ? 'active' : ''}">Default</a>
+            <a href="?state=loading"  class="state-tab #{state == 'loading'  ? 'active' : ''}">Loading</a>
+            <a href="?state=empty"    class="state-tab #{state == 'empty'    ? 'active' : ''}">Empty</a>
+            <a href="?state=error"    class="state-tab #{state == 'error'    ? 'active' : ''}">Error</a>
+            <a href="?state=disabled" class="state-tab #{state == 'disabled' ? 'active' : ''}">Disabled</a>
+          </div>
+
+          #{profile_content(state)}
+
+        </div>
+
+        <footer>&copy; #{Time.now.year} AutoBot. All rights reserved.</footer>
+
+        <script>
+          (function() {
+            var STORAGE_KEY = 'autobot-theme';
+            function applyTheme(t) {
+              document.documentElement.setAttribute('data-theme', t);
+            }
+            var stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+              applyTheme(stored);
+            } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+              applyTheme('light');
+            }
+            document.getElementById('theme-toggle').addEventListener('click', function() {
+              var current = document.documentElement.getAttribute('data-theme') || 'dark';
+              var next = current === 'light' ? 'dark' : 'light';
+              localStorage.setItem(STORAGE_KEY, next);
+              applyTheme(next);
+            });
+          })();
+        </script>
+
+      </body>
+      </html>
+    HTML
+  end
+
+  def profile_content(state)
+    case state
+    when 'loading' then profile_loading_html
+    when 'empty'   then profile_empty_html
+    when 'error'   then profile_error_html
+    when 'disabled' then profile_disabled_html
+    else profile_default_html
+    end
+  end
+
+  def profile_default_html
+    <<~HTML
+      <div class="profile-card">
+        <div class="profile-banner">
+          <div class="avatar-wrap">
+            <div class="avatar">AJ</div>
+          </div>
+        </div>
+        <div class="profile-body">
+          <div class="profile-header">
+            <div>
+              <div class="profile-name">Alex Johnson</div>
+              <div class="profile-handle">@alexjohnson &middot; <span class="role-badge">Admin</span></div>
+            </div>
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+              <button class="btn btn-ghost">Message</button>
+              <button class="btn btn-primary">Edit Profile</button>
+            </div>
+          </div>
+
+          <p class="profile-bio">
+            Senior Software Engineer at AutoBot. Building AI-powered developer tools and open-source contributor.
+            Passionate about developer experience and making complex things simple.
+          </p>
+
+          <div class="profile-meta">
+            <span class="meta-item"><span class="icon">&#128205;</span> San Francisco, CA</span>
+            <span class="meta-item"><span class="icon">&#128279;</span> autobot.dev</span>
+            <span class="meta-item"><span class="icon">&#128197;</span> Joined March 2022</span>
+            <span class="meta-item"><span class="icon">&#9993;</span> alex@autobot.dev</span>
+          </div>
+
+          <div class="stats-strip">
+            <div class="stat-cell">
+              <span class="stat-value">248</span>
+              <span class="stat-label">Commits</span>
+            </div>
+            <div class="stat-cell">
+              <span class="stat-value">64</span>
+              <span class="stat-label">Pull Requests</span>
+            </div>
+            <div class="stat-cell">
+              <span class="stat-value">1.2k</span>
+              <span class="stat-label">Reviews</span>
+            </div>
+          </div>
+
+          <div class="section-heading">Recent Activity</div>
+          <div class="activity-list">
+            <div class="activity-item">
+              <div class="activity-icon commit">&#128196;</div>
+              <div class="activity-text">Pushed 3 commits to <strong>feature/profile-ui</strong></div>
+              <span class="activity-time">2h ago</span>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon review">&#10003;</div>
+              <div class="activity-text">Approved PR <strong>#142 — Add stats endpoint</strong></div>
+              <span class="activity-time">5h ago</span>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon deploy">&#128640;</div>
+              <div class="activity-text">Deployed <strong>v2.4.0</strong> to production</div>
+              <span class="activity-time">1d ago</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    HTML
+  end
+
+  def profile_loading_html
+    <<~HTML
+      <div class="profile-card">
+        <div class="skeleton sk-banner"></div>
+        <div class="profile-body" style="padding-top:3.5rem;">
+          <div class="skeleton sk-avatar" style="margin-bottom:1rem;"></div>
+          <div class="skeleton sk-line sk-w40" style="margin-bottom:0.4rem;"></div>
+          <div class="skeleton sk-line sk-w60" style="margin-bottom:1.25rem;"></div>
+          <div class="skeleton sk-line sk-w80" style="margin-bottom:0.4rem;"></div>
+          <div class="skeleton sk-line sk-w60" style="margin-bottom:1.5rem;"></div>
+          <div class="stats-strip">
+            <div class="stat-cell"><div class="skeleton sk-stat"></div></div>
+            <div class="stat-cell"><div class="skeleton sk-stat"></div></div>
+            <div class="stat-cell"><div class="skeleton sk-stat"></div></div>
+          </div>
+          <div class="skeleton sk-line sk-w40" style="margin-bottom:0.75rem;"></div>
+          <div style="display:flex;flex-direction:column;gap:0.75rem;">
+            <div class="skeleton sk-row"></div>
+            <div class="skeleton sk-row"></div>
+            <div class="skeleton sk-row"></div>
+          </div>
+        </div>
+      </div>
+    HTML
+  end
+
+  def profile_empty_html
+    <<~HTML
+      <div class="profile-card">
+        <div class="empty-state">
+          <div class="empty-icon">&#128100;</div>
+          <div class="empty-title">No profile found</div>
+          <div class="empty-desc">This user hasn&rsquo;t set up their profile yet. Check back later or search for a different user.</div>
+          <button class="btn btn-primary" style="margin-top:0.75rem;">Create Profile</button>
+        </div>
+      </div>
+    HTML
+  end
+
+  def profile_error_html
+    <<~HTML
+      <div class="profile-card">
+        <div class="error-state">
+          <div class="error-icon">&#9888;</div>
+          <div class="error-title">Failed to load profile</div>
+          <div class="error-desc">We couldn&rsquo;t retrieve this profile. This may be a temporary network issue.</div>
+          <div class="error-code">ERR_PROFILE_FETCH_FAILED &middot; 503</div>
+          <button class="btn btn-ghost" style="margin-top:1rem;">&#8635; Try again</button>
+        </div>
+      </div>
+    HTML
+  end
+
+  def profile_disabled_html
+    <<~HTML
+      <div class="profile-card account-disabled">
+        <div class="profile-banner disabled-banner">
+          <div class="disabled-overlay">
+            <span class="disabled-chip">&#9940; Account Suspended</span>
+          </div>
+          <div class="avatar-wrap">
+            <div class="avatar" style="opacity:0.45;">AJ</div>
+          </div>
+        </div>
+        <div class="profile-body">
+          <div class="disabled-notice">
+            <span style="font-size:1.1rem;">&#9888;</span>
+            <div>
+              <strong>Account disabled</strong>
+              This account has been suspended due to a violation of our terms of service.
+              Contact <a href="mailto:support@autobot.dev" style="color:var(--warning);">support@autobot.dev</a> to appeal.
+            </div>
+          </div>
+
+          <div class="profile-header">
+            <div>
+              <div class="profile-name">Alex Johnson</div>
+              <div class="profile-handle">@alexjohnson</div>
+            </div>
+            <button class="btn btn-ghost" disabled>Edit Profile</button>
+          </div>
+
+          <p class="profile-bio">
+            Senior Software Engineer at AutoBot. Building AI-powered developer tools.
+          </p>
+
+          <div class="profile-meta">
+            <span class="meta-item"><span class="icon">&#128205;</span> San Francisco, CA</span>
+            <span class="meta-item"><span class="icon">&#128197;</span> Joined March 2022</span>
+          </div>
+
+          <div class="stats-strip">
+            <div class="stat-cell">
+              <span class="stat-value">248</span>
+              <span class="stat-label">Commits</span>
+            </div>
+            <div class="stat-cell">
+              <span class="stat-value">64</span>
+              <span class="stat-label">Pull Requests</span>
+            </div>
+            <div class="stat-cell">
+              <span class="stat-value">1.2k</span>
+              <span class="stat-label">Reviews</span>
+            </div>
+          </div>
+        </div>
+      </div>
     HTML
   end
 end

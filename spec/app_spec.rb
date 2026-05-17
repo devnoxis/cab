@@ -484,6 +484,158 @@ RSpec.describe App do
     end
   end
 
+  describe 'GET /profile' do
+    it 'returns 200' do
+      get '/profile'
+      expect(last_response.status).to eq(200)
+    end
+
+    it 'returns HTML content type' do
+      get '/profile'
+      expect(last_response.content_type).to eq('text/html')
+    end
+
+    it 'renders default state with user name' do
+      get '/profile'
+      expect(last_response.body).to include('Alex Johnson')
+    end
+
+    it 'renders default state with profile stats' do
+      get '/profile'
+      expect(last_response.body).to include('Commits')
+      expect(last_response.body).to include('Pull Requests')
+      expect(last_response.body).to include('Reviews')
+    end
+
+    it 'renders default state with recent activity' do
+      get '/profile'
+      expect(last_response.body).to include('Recent Activity')
+    end
+
+    it 'renders state tabs for all five states' do
+      get '/profile'
+      %w[default loading empty error disabled].each do |s|
+        expect(last_response.body).to include("?state=#{s}")
+      end
+    end
+
+    it 'marks default tab as active when no state param given' do
+      get '/profile'
+      expect(last_response.body).to match(/state=default[^>]*active|active[^>]*state=default/)
+    end
+
+    it 'includes dark theme CSS variables in :root' do
+      get '/profile'
+      expect(last_response.body).to match(/:root\s*\{[^}]*--bg:\s*#0a0a0f/)
+    end
+
+    it 'includes light theme CSS variables' do
+      get '/profile'
+      expect(last_response.body).to include('[data-theme="light"]')
+    end
+
+    it 'includes theme toggle button' do
+      get '/profile'
+      expect(last_response.body).to include('id="theme-toggle"')
+      expect(last_response.body).to include('aria-label="Toggle theme"')
+    end
+
+    it 'includes theme persistence script using localStorage' do
+      get '/profile'
+      expect(last_response.body).to include('autobot-theme')
+      expect(last_response.body).to include('localStorage')
+    end
+
+    context 'loading state' do
+      it 'returns 200' do
+        get '/profile?state=loading'
+        expect(last_response.status).to eq(200)
+      end
+
+      it 'renders skeleton elements' do
+        get '/profile?state=loading'
+        expect(last_response.body).to include('skeleton')
+      end
+
+      it 'marks loading tab as active' do
+        get '/profile?state=loading'
+        expect(last_response.body).to match(/state=loading[^>]*active|active[^>]*state=loading/)
+      end
+
+      it 'does not render user name in loading state' do
+        get '/profile?state=loading'
+        expect(last_response.body).not_to include('Alex Johnson')
+      end
+    end
+
+    context 'empty state' do
+      it 'returns 200' do
+        get '/profile?state=empty'
+        expect(last_response.status).to eq(200)
+      end
+
+      it 'renders no profile found message' do
+        get '/profile?state=empty'
+        expect(last_response.body).to include('No profile found')
+      end
+
+      it 'renders create profile call-to-action' do
+        get '/profile?state=empty'
+        expect(last_response.body).to include('Create Profile')
+      end
+    end
+
+    context 'error state' do
+      it 'returns 200' do
+        get '/profile?state=error'
+        expect(last_response.status).to eq(200)
+      end
+
+      it 'renders error message' do
+        get '/profile?state=error'
+        expect(last_response.body).to include('Failed to load profile')
+      end
+
+      it 'renders error code' do
+        get '/profile?state=error'
+        expect(last_response.body).to include('ERR_PROFILE_FETCH_FAILED')
+      end
+
+      it 'renders retry button' do
+        get '/profile?state=error'
+        expect(last_response.body).to include('Try again')
+      end
+    end
+
+    context 'disabled state' do
+      it 'returns 200' do
+        get '/profile?state=disabled'
+        expect(last_response.status).to eq(200)
+      end
+
+      it 'renders account suspended badge' do
+        get '/profile?state=disabled'
+        expect(last_response.body).to include('Account Suspended')
+      end
+
+      it 'renders disabled account notice' do
+        get '/profile?state=disabled'
+        expect(last_response.body).to include('Account disabled')
+      end
+
+      it 'renders edit profile button as disabled' do
+        get '/profile?state=disabled'
+        expect(last_response.body).to include('disabled')
+        expect(last_response.body).to include('Edit Profile')
+      end
+    end
+
+    it 'falls back to default for unknown state values' do
+      get '/profile?state=bogus'
+      expect(last_response.body).to include('Alex Johnson')
+    end
+  end
+
   describe 'GET /other' do
     it 'returns 404' do
       get '/other'
